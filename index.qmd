@@ -1,0 +1,119 @@
+---
+title: "Adnormal Conversation Starters"
+format: html
+editor: visual
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true
+  cache.lazy: false
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(brms)
+library(bayesplot)
+library(tidybayes)
+
+setwd("/Users/jaden/Documents/Intellectual Fun/blog/AdnormalConversationStarters")
+
+survey <- read_csv("~/Documents/Intellectual Fun/blog/AdnormalConversationStarters/Novel Questions (Responses) - Form Responses 1.csv")
+```
+
+Find the survey at [adnormal questions survey](https://forms.gle/T5R1izmKQY2n9ZVv9)
+
+
+::: {.panel-tabset}
+
+## Bayesian shrinkage
+
+```{r, include = FALSE}
+bayes_lm <- brms::brm(
+  rating ~ q,  
+  data = survey_tidy,
+  prior = c(
+    prior(normal(3.5, .5), class = Intercept),
+    prior(normal(0, 0.2), class = b),  # heavily regularized
+    prior(exponential(1), class = sigma)
+  ),
+  chains = 4, iter = 2000, cores = 4,
+  backend = "cmdstanr", silent = 2,
+  file = "lm.1"
+)
+
+
+```
+
+::: {.panel-tabset}
+
+### bayes results
+```{r}
+as_tibble(as_draws_df(bayes_lm))  %>% 
+  dplyr::select(b_Intercept:sigma) %>% 
+  gather() %>% 
+  
+  ggplot(aes(x = value, y = reorder(key, value))) +  # note how we used `reorder()` to arrange the coefficients
+  geom_vline(xintercept = 0, color = "firebrick4", alpha = 1/10) +
+  stat_pointinterval(point_interval = mode_hdi, .width = .95, 
+                     size = 3/4, color = "firebrick4") +
+  labs(title = "Question Ratings Effect",
+       x = NULL, y = NULL) +
+  theme_bw() +
+  theme(axis.text.y = element_text(hjust = 0),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(color = alpha("firebrick4", 1/4), linetype = 3))
+```
+
+
+### code
+
+```{r, echo = TRUE}
+bayes_lm <- brms::brm(
+  rating ~ q,  # Both fixed and random effects
+  data = survey_tidy,
+  prior = c(
+    prior(normal(3.5, .5), class = Intercept),
+    prior(normal(0, 0.2), class = b),  # Small random effect
+    prior(exponential(1), class = sigma)
+  ),
+  chains = 4, iter = 2000, cores = 4,
+  backend = "cmdstanr", silent = 2,
+  file = "lm.1"
+)
+```
+
+### In-depth parameters
+
+```{r}
+plot(bayes_lm)
+```
+
+:::
+
+## Frequentist factor effects
+
+```{r}
+survey_tidy <- survey %>% 
+  dplyr::select(-c(Timestamp)) %>% 
+  rename_with(~ c("Laughter", "Peacocks", "Guys_intimidated", "AI_jobs", 
+                  "Nurture_vs_nature", "Emotional_iq", "Future_charity", "Human_takeover", 
+                  "Insurance", "Korean_bias", "Poor_entrepreneurs", "War_vs_disease",
+                  "Bad_hot_actors", "AI_morals", "Dreams", "Pools"), 1:16) %>% 
+  pivot_longer(cols = everything(),
+               names_to = "q",
+               values_to = "rating") %>% 
+  mutate(q_ = as.factor(q))
+
+freq_lm <- lm(rating ~ q, data = survey_tidy)
+summary(freq_lm)
+#anova(freq_lm, data = survey_tidy)
+#sigma(freq_lm) 
+```
+
+:::
+
+
+See the GitHub source [here](https://github.com/probably-jaden/adnormal-conversation-starters).
+
