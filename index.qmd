@@ -37,6 +37,8 @@ Find the survey at [adnormal questions survey](https://forms.gle/T5R1izmKQY2n9ZV
 
 ::: {.panel-tabset}
 
+
+
 ## Bayesian shrinkage
 
 ```{r, include = FALSE}
@@ -50,7 +52,23 @@ bayes_lm <- brms::brm(
   ),
   chains = 4, iter = 2000, cores = 4,
   backend = "cmdstanr", silent = 2,
-  file = "lm.1"
+  file = "fits/lm.1"
+)
+
+bayes_ordinal_hierarchical <- brms::brm(
+  rating ~ 1 + (1 | q),  
+  data = survey_tidy,
+  family = cumulative(link = "logit"),
+  prior = c(
+    # Global intercepts (cutpoints) 
+    prior(normal(0, 1.5), class = Intercept),
+    
+    # Hierarchical variance - how much factor levels vary from grand mean
+    prior(exponential(1), class = sd, group = q)
+  ),
+  chains = 4, iter = 2000, cores = 4,
+  backend = "cmdstanr", silent = 2,
+  file = "fits/ordinal_hierarchical"
 )
 
 
@@ -60,48 +78,63 @@ bayes_lm <- brms::brm(
 
 ### bayes results
 ```{r}
-as_tibble(as_draws_df(bayes_lm))  %>% 
-  dplyr::select(b_qAI_morals:b_qwar_vs_disease) %>% 
-  rename_with(~ c("AI_morals", "Bad_hot_actors",  "Dreams", "Emotional_iq",  "Future_charity",  "Guys_intimidated",  "Human_takeover", 
-                  "Insurance", "Korean_bias", "Laughter",  "Nurture_vs_nature", "Peacocks",  "Pools",
-                   "Poor_entrepreneurs", "War_vs_disease"), 1:15) %>% 
-  gather() %>% 
-  ggplot(aes(x = value, y = reorder(key, value))) +  # note how we used `reorder()` to arrange the coefficients
-  geom_vline(xintercept = 0, color = "firebrick4", alpha = 1/10) +
-  stat_pointinterval(point_interval = mode_hdi, .width = .95, 
-                     size = 3/4, color = "firebrick4") +
-  labs(title = "Question Ratings Effect",
-       x = NULL, y = NULL) +
-  theme_bw() +
-  theme(axis.text.y = element_text(hjust = 0),
-        axis.ticks.y = element_blank(),
-        panel.grid = element_blank(),
-        panel.grid.major.y = element_line(color = alpha("firebrick4", 1/4), linetype = 3))
+# The parameter names are likely in format: r_q[question,Intercept] 
+# Let's get the actual names and create the lookup
+post_draws <- as_draws_df(bayes_ordinal_hierarchical)
+actual_param_names <- names(post_draws)[grepl("^r_q\\[", names(post_draws))]
+
+# Create lookup table with correct parameter names
+question_lookup <- tibble(
+  param_name = actual_param_names,
+  question_text = c("Last Job to be taken by AI?", "Will we have to code AI morals?", 
+                   "Why are hot actors bad at acting?", "Do dreams serve evolution?", 
+                   "Why gender gap in emotional IQ?", "Charity to the future > now?", 
+                   "Why gender gap in intimidation?", "Why did humans beat chimps?", 
+                   "Why is there no divorce insurance?", "Does North Korean bias rival our own?", 
+                   "Why do we laugh when we trip?", "Will we solve nature vs nurture?", 
+                   "Why do peacocks have a long tail?", "Will there be another pool-like amenity?",
+                   "3rd world entrepreneurs > factory jobs?", "Why do we care about war over disease?")
+)
+
+# Get ordering by effect size
+param_order <- post_draws %>%
+  select(all_of(actual_param_names)) %>%
+  summarise_all(median) %>%
+  pivot_longer(everything(), names_to = "parameter", values_to = "median") %>%
+  left_join(question_lookup, by = c("parameter" = "param_name")) %>%
+  arrange((median))
+
+# Plot with ordered and labeled axes (using 'variable' instead of 'pars')
+mcmc_plot(bayes_ordinal_hierarchical, 
+          variable = param_order$parameter,
+          type = "intervals") +
+  scale_y_discrete(labels = param_order$question_text) +
+  labs(title = "Question Effects (Highest to Lowest)",
+       x = "Effect on Rating Propensity (log-odds)")
+
 ```
 
 
 ### code
 
 ```{r, echo = TRUE}
-bayes_lm <- brms::brm(
-  rating ~ q,  # Both fixed and random effects
+bayes_ordinal_hierarchical <- brms::brm(
+  rating ~ 1 + (1 | q),  
   data = survey_tidy,
+  family = cumulative(link = "logit"),
   prior = c(
-    prior(normal(3.5, .5), class = Intercept),
-    prior(normal(0, 0.2), class = b),  # Small random effect
-    prior(exponential(1), class = sigma)
+    # Global intercepts (cutpoints) 
+    prior(normal(0, 1.5), class = Intercept),
+    
+    # Hierarchical variance - how much factor levels vary from grand mean
+    prior(exponential(1), class = sd, group = q)
   ),
   chains = 4, iter = 2000, cores = 4,
   backend = "cmdstanr", silent = 2,
-  file = "lm.1"
+  file = "fits/ordinal_hierarchical"
 )
 ```
 
-### In-depth parameters
-
-```{r}
-plot(bayes_lm)
-```
 
 :::
 
