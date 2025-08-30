@@ -1,3 +1,40 @@
-/.quarto/
+# ===============================
+# R project & RStudio
+# ===============================
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# RStudio project files (keep the .Rproj itself if desired)
+*.Rproj.*
+
+# ===============================
+# Quarto / RMarkdown artifacts
+# ===============================
+*_cache/
+*_files/
+*.utf8.md
+*.knit.md
+
+# don’t version the rendered site
 _site/
+
+# Large rendered docs (keep only selected HTMLs)
+*.html
+
+# ===============================
+# Model fits / large objects
+# ===============================
 fits/
+*.rds
+*.RData
+*.rda
+
+# ===============================
+# Miscellaneous
+# ===============================
+.DS_Store
+Thumbs.db
+xs
+/.quarto/
