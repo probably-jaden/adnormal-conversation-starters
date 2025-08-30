@@ -23,9 +23,7 @@ survey <- read_csv("~/Documents/Intellectual Fun/blog/AdnormalConversationStarte
 
 Find the survey at [adnormal questions survey](https://forms.gle/T5R1izmKQY2n9ZVv9)
 
-
-::: {.panel-tabset}
-
+:::: panel-tabset
 ## Bayesian shrinkage
 
 ```{r, include = FALSE}
@@ -45,9 +43,9 @@ bayes_lm <- brms::brm(
 
 ```
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ### bayes results
+
 ```{r}
 as_tibble(as_draws_df(bayes_lm))  %>% 
   dplyr::select(b_Intercept:sigma) %>% 
@@ -65,7 +63,6 @@ as_tibble(as_draws_df(bayes_lm))  %>%
         panel.grid = element_blank(),
         panel.grid.major.y = element_line(color = alpha("firebrick4", 1/4), linetype = 3))
 ```
-
 
 ### code
 
@@ -89,7 +86,6 @@ bayes_lm <- brms::brm(
 ```{r}
 plot(bayes_lm)
 ```
-
 :::
 
 ## Frequentist factor effects
@@ -111,7 +107,4 @@ summary(freq_lm)
 #anova(freq_lm, data = survey_tidy)
 #sigma(freq_lm) 
 ```
-
-:::
-
-
+::::
