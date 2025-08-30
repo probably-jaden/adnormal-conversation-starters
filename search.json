@@ -1,12 +1,5 @@
 [
   {
-    "objectID": "NovelQuestionsAnalysis.html",
-    "href": "NovelQuestionsAnalysis.html",
-    "title": "Adnormal Conversation Starters",
-    "section": "",
-    "text": "Find the survey at adnormal questions survey\n\nBayesian shrinkageFrequentist factor effects\n\n\n\nbayes resultscodeIn-depth parameters\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nbayes_lm &lt;- brms::brm(\n  rating ~ q,  # Both fixed and random effects\n  data = survey_tidy,\n  prior = c(\n    prior(normal(3.5, .5), class = Intercept),\n    prior(normal(0, 0.2), class = b),  # Small random effect\n    prior(exponential(1), class = sigma)\n  ),\n  chains = 4, iter = 2000, cores = 4,\n  backend = \"cmdstanr\", silent = 2,\n  file = \"lm.1\"\n)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCall:\nlm(formula = rating ~ q, data = survey_tidy)\n\nResiduals:\n     Min       1Q   Median       3Q      Max \n-2.91667 -0.75000  0.08333  1.00000  2.25000 \n\nCoefficients:\n                      Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)          3.667e+00  3.431e-01  10.688   &lt;2e-16 ***\nqAI_morals          -6.667e-01  4.852e-01  -1.374   0.1712    \nqBad_hot_actors     -3.333e-01  4.852e-01  -0.687   0.4930    \nqDreams              9.167e-01  4.852e-01   1.889   0.0605 .  \nqEmotional_iq        2.500e-01  4.852e-01   0.515   0.6070    \nqFuture_charity      9.697e-16  4.852e-01   0.000   1.0000    \nqGuys_intimidated    8.333e-02  4.852e-01   0.172   0.8638    \nqHuman_takeover     -2.500e-01  4.852e-01  -0.515   0.6070    \nqInsurance          -9.167e-01  4.852e-01  -1.889   0.0605 .  \nqKorean_bias         5.000e-01  4.852e-01   1.031   0.3042    \nqLaughter           -7.500e-01  4.852e-01  -1.546   0.1239    \nqNurture_vs_nature  -9.167e-01  4.852e-01  -1.889   0.0605 .  \nqPeacocks            1.738e-15  4.852e-01   0.000   1.0000    \nqPools               2.500e-01  4.852e-01   0.515   0.6070    \nqPoor_entrepreneurs -8.333e-02  4.852e-01  -0.172   0.8638    \nqWar_vs_disease      3.333e-01  4.852e-01   0.687   0.4930    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 1.188 on 176 degrees of freedom\nMultiple R-squared:  0.1634,    Adjusted R-squared:  0.09205 \nF-statistic: 2.291 on 15 and 176 DF,  p-value: 0.005459"
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Adnormal Conversation Starters",
